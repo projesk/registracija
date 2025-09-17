@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="lt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mokamų palatų registracija</title>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif; margin:0; color:#111;}
+    main{max-width:680px; margin:24px auto; padding:0 16px;}
+    form{display:grid; gap:12px; background:#fff; border:1px solid #e5e5e5; border-radius:10px; padding:16px;}
+    label{font-weight:600;}
+    input, textarea, button{padding:10px; border:1px solid #cfcfcf; border-radius:8px; font-size:16px;}
+    .row{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+    @media (max-width:640px){ .row{grid-template-columns:1fr;} }
+    .thankyou{display:none; min-height:40vh; align-items:center; justify-content:center; text-align:center;
+              border:1px solid #e5e5e5; border-radius:10px; padding:24px; background:#fafafa;}
+    .hidden{display:none !important;}
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Mokamų palatų registracija</h1>
+
+    <!-- Nematomai gausime atsakymą ir parodysime "Ačiū" -->
+    <iframe name="silent_target" id="silent_target" style="display:none;"></iframe>
+
+    <form id="regForm" action="PAKEISK_SU_SAVO_URL" method="post" target="silent_target" onsubmit="return handleSubmit();">
+      <div class="row">
+        <div>
+          <label for="vardas">Vardas *</label>
+          <input id="vardas" name="vardas" required autocomplete="given-name">
+        </div>
+        <div>
+          <label for="pavarde">Pavardė *</label>
+          <input id="pavarde" name="pavarde" required autocomplete="family-name">
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label for="elpastas">El. paštas *</label>
+          <input id="elpastas" name="elpastas" type="email" required autocomplete="email" placeholder="vardas.pavarde@gmail.com">
+        </div>
+        <div>
+          <label for="data">Operacijos / atvykimo data *</label>
+          <input id="data" name="data" type="date" required>
+        </div>
+      </div>
+
+      <div>
+        <label for="pastabos">Pastabos</label>
+        <textarea id="pastabos" name="pastabos" rows="4" placeholder="Pvz., pageidaujama palata, atvykimo laikas, kt."></textarea>
+      </div>
+
+      <button id="submitBtn" type="submit">Pateikti</button>
+    </form>
+
+    <section id="thankyou" class="thankyou" aria-live="polite">
+      <div>
+        <h2>Ačiū už registraciją!</h2>
+        <p>Artimiausią darbo dieną gausite patvirtinantį laišką į savo el. paštą.</p>
+        <p style="margin-top:16px;">
+          <button id="newRegBtn" type="button" onclick="newRegistration()">Pildyti naują registraciją</button>
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    function handleSubmit(){
+      // Minimalus el. pašto patikrinimas
+      var email = document.getElementById('elpastas').value.trim();
+      if(!/.+@.+\..+/.test(email)){ alert('Įveskite teisingą el. pašto adresą.'); return false; }
+
+      // Kai iframe užsikraus (gavom atsakymą), rodome padėką
+      var iframe = document.getElementById('silent_target');
+      iframe.onload = function(){
+        document.getElementById('regForm').classList.add('hidden');
+        document.getElementById('thankyou').style.display = 'flex';
+        document.getElementById('regForm').reset();
+      };
+      return true; // leisti formos siuntimą
+    }
+    function newRegistration(){
+      document.getElementById('thankyou').style.display = 'none';
+      document.getElementById('regForm').classList.remove('hidden');
+      document.getElementById('vardas').focus();
+    }
+  </script>
+</body>
+</html>
