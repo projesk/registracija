@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="lt">
+<head>
+  <meta charset="utf-8">
+  <title>Palatų registracija</title>
+  <style>
+    body{font-family:Arial, sans-serif; max-width:620px; margin:20px auto; padding:0 16px;}
+    form{display:grid; gap:12px;}
+    label{font-weight:600;}
+    input, textarea, button{padding:10px; border:1px solid #ccc; border-radius:6px;}
+    button{cursor:pointer;}
+    .success{background:#eef9ee; border:1px solid #c6e5c6; padding:12px;}
+    .error{background:#f9eeee; border:1px solid #e5c6c6; padding:12px;}
+  </style>
+</head>
+<body>
+  <h1>Mokamų palatų registracija</h1>
+
+  <form id="regForm">
+    <div>
+      <label for="vardas">Vardas *</label>
+      <input id="vardas" name="vardas" required>
+    </div>
+
+    <div>
+      <label for="pavarde">Pavardė *</label>
+      <input id="pavarde" name="pavarde" required>
+    </div>
+
+    <div>
+      <label for="elpastas">El. paštas *</label>
+      <input id="elpastas" name="elpastas" type="email" required>
+    </div>
+
+    <div>
+      <label for="data">Operacijos/atvykimo data *</label>
+      <input id="data" name="data" type="date" required>
+    </div>
+
+    <div>
+      <label for="pastabos">Pastabos</label>
+      <textarea id="pastabos" name="pastabos"></textarea>
+    </div>
+
+    <button type="submit">Pateikti</button>
+    <div id="msg"></div>
+  </form>
+
+  <script>
+    const WEB_APP_URL = 'PAKEISK_SU_SAVO_URL';
+
+    document.getElementById('regForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = {
+        vardas: document.getElementById('vardas').value,
+        pavarde: document.getElementById('pavarde').value,
+        elpastas: document.getElementById('elpastas').value,
+        data: document.getElementById('data').value,
+        pastabos: document.getElementById('pastabos').value
+      };
+
+      const res = await fetch(WEB_APP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const json = await res.json();
+
+      const msg = document.getElementById('msg');
+      if(json.ok){
+        msg.innerHTML = `<div class="success">✅ ${json.message}</div>`;
+        e.target.reset();
+      } else {
+        msg.innerHTML = `<div class="error">❌ ${json.message}</div>`;
+      }
+    });
+  </script>
+</body>
+</html>
