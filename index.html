@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="lt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mokamų palatų registracija</title>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif; margin:0; color:#111;}
+    main{max-width:680px; margin:24px auto; padding:0 16px;}
+    form{display:grid; gap:12px; background:#fff; border:1px solid #e5e5e5; border-radius:10px; padding:16px;}
+    label{font-weight:600;}
+    input, textarea, button{padding:10px; border:1px solid #cfcfcf; border-radius:8px; font-size:16px;}
+    input:focus, textarea:focus{outline:none; border-color:#8aa8ff; box-shadow:0 0 0 3px rgba(138,168,255,.25);}
+    button{cursor:pointer;}
+    .row{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+    @media (max-width:640px){ .row{grid-template-columns:1fr;} }
+    .msg{margin-top:8px;}
+    .success{background:#eef9ee; border:1px solid #c6e5c6; padding:12px; border-radius:8px;}
+    .error{background:#f9eeee; border:1px solid #e5c6c6; padding:12px; border-radius:8px;}
+    .thankyou{display:none; min-height:40vh; align-items:center; justify-content:center; text-align:center;
+              border:1px solid #e5e5e5; border-radius:10px; padding:24px; background:#fafafa;}
+    .hidden{display:none !important;}
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Mokamų palatų registracija</h1>
+
+    <form id="regForm" autocomplete="on" novalidate>
+      <div class="row">
+        <div>
+          <label for="vardas">Vardas *</label>
+          <input id="vardas" name="vardas" required autocomplete="given-name">
+        </div>
+        <div>
+          <label for="pavarde">Pavardė *</label>
+          <input id="pavarde" name="pavarde" required autocomplete="family-name">
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label for="elpastas">El. paštas *</label>
+          <input id="elpastas" name="elpastas" type="email" required autocomplete="email" placeholder="vardas.pavarde@gmail.com">
+        </div>
+        <div>
+          <label for="data">Operacijos / atvykimo data *</label>
+          <input id="data" name="data" type="date" required>
+        </div>
+      </div>
+
+      <div>
+        <label for="pastabos">Pastabos</label>
+        <textarea id="pastabos" name="pastabos" rows="4" placeholder="Pvz., pageidaujama palata, atvykimo laikas, kt."></textarea>
+      </div>
+
+      <button id="submitBtn" type="submit">Pateikti</button>
+      <div id="msg" class="msg"></div>
+    </form>
+
+    <section id="thankyou" class="thankyou" aria-live="polite">
+      <div>
+        <h2>Ačiū už registraciją!</h2>
+        <p>Artimiausią darbo dieną gausite patvirtinantį laišką į savo el. paštą.</p>
+        <p style="margin-top:16px;">
+          <button id="newRegBtn" type="button">Pildyti naują registraciją</button>
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Įrašykite savo Apps Script Web App URL (baigiasi /exec)
+    const WEB_APP_URL = 'PAKEISK_SU_SAVO_URL';
+
+    const form = document.getElementById('regForm');
+    const msg = document.getElementById('msg');
+    const btn = document.getElementById('submitBtn');
+    const thankyou = document.getElementById('thankyou');
+    const newRegBtn = document.getElementById('newRegBtn');
+
+    function validEmail(e){ return /.+@.+\..+/.test(e); }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      msg.textContent = '';
+
+      const elpastas = document.getElementById('elpastas').value.trim();
+      if (!validEmail(elpastas)){
+        msg.innerHTML = '<div class="error">Įveskite teisingą el. pašto adresą (pvz., vardas.pavarde@gmail.com).</div>';
+        return;
+      }
+
+      btn.disabled = true; btn.textContent = 'Siunčiama...';
+
+      const payload = {
+        vardas: document.getElementById('vardas').value.trim(),
+        pavarde: document.getElementById('pavarde').value.trim(),
+        elpastas: elpastas,
+        data: document.getElementById('data').value,
+        pastabos: document.getElementById('pastabos').value.trim()
+      };
+
+      try {
+        // Be application/json antraštės, kad nevyktų preflight
+        const res = await fetch(WEB_APP_URL, {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+        const text = await res.text();
+        let json = {};
+        try { json = JSON.parse(text); } catch(_) {}
+
+        if (json && json.ok) {
+          form.classList.add('hidden');
+          thankyou.style.display = 'flex';
+          form.reset();
+        } else {
+          const msgText = (json && json.message) ? json.message : 'Nepavyko pateikti registracijos.';
+          msg.innerHTML = `<div class="error">❌ ${msgText}</div>`;
+        }
+      } catch (err) {
+        msg.innerHTML = `<div class="error">❌ ${err.message || err}</div>`;
+      } finally {
+        btn.disabled = false; btn.textContent = 'Pateikti';
+      }
+    });
+
+    newRegBtn.addEventListener('click', () => {
+      thankyou.style.display = 'none';
+      form.classList.remove('hidden');
+      msg.innerHTML = '';
+      document.getElementById('vardas').focus();
+    });
+  </script>
+</body>
+</html>
